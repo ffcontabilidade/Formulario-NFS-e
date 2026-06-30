@@ -1,0 +1,559 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Solicitação de Dados para NFS-e | FF Contabilidade</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <style>
+        :root { 
+            --primary-color: #0B2545; /* Azul Escuro Elegante */
+            --secondary-color: #134074; /* Azul Corporativo */
+            --light-blue: #EEF4F8; /* Fundo Suave */
+            --accent-blue: #007BFF; /* Links e Destaques */
+            --accent-color: #dc3545; /* Vermelho Alerta */
+            --card-background: #ffffff; 
+            --text-color: #2D3748; 
+        }
+        
+        body { 
+            font-family: 'Segoe UI', -apple-system, BlinkMacSystemFont, Roboto, sans-serif; 
+            background-color: var(--light-blue); 
+            color: var(--text-color); 
+            margin: 0; 
+            padding: 20px; 
+            display: flex; 
+            justify-content: center; 
+        }
+        
+        .container { 
+            width: 100%; 
+            max-width: 650px; 
+            background: var(--card-background); 
+            padding: 30px; 
+            border-radius: 12px; 
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+            border-top: 6px solid var(--primary-color);
+        }
+        
+        .header { 
+            text-align: center; 
+            margin-bottom: 20px; 
+            border-bottom: 1px solid #E2E8F0;
+            padding-bottom: 15px;
+        }
+        
+        .header h1 { 
+            font-size: 24px; 
+            color: var(--primary-color); 
+            font-weight: 700;
+            letter-spacing: 1.5px; 
+            text-transform: uppercase; 
+            margin: 0; 
+        }
+        
+        .header h2 { 
+            font-size: 13px; 
+            color: var(--secondary-color); 
+            font-weight: 500; 
+            margin-top: 4px; 
+            letter-spacing: 0.5px;
+        }
+
+        .instructions { 
+            font-size: 13px; 
+            color: #4A5568; 
+            background-color: #F7FAFC; 
+            padding: 12px 15px; 
+            border-left: 4px solid var(--secondary-color); 
+            border-radius: 4px; 
+            margin-bottom: 15px; 
+            line-height: 1.5;
+        }
+        
+        .prazo-aviso { 
+            background-color: #FFFDF5; 
+            color: #975A16; 
+            padding: 8px; 
+            border-radius: 4px; 
+            text-align: center; 
+            font-size: 13px;
+            font-weight: 600; 
+            margin-bottom: 15px; 
+            border: 1px solid #FEEBC8; 
+        }
+        
+        fieldset { 
+            border: none; 
+            border-top: 1px solid #E2E8F0; 
+            padding: 12px 0 0 0; 
+            margin-bottom: 12px; 
+        }
+        
+        legend { 
+            font-weight: 700; 
+            color: var(--secondary-color); 
+            font-size: 14px; 
+            padding: 0 8px; 
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        
+        .form-group { 
+            margin-bottom: 12px; 
+        }
+        
+        .form-group.row-2 { 
+            display: grid; 
+            grid-template-columns: 1fr 1fr; 
+            gap: 15px; 
+        }
+
+        /* AJUSTE: CNPJ aumentado para 165px para evitar cortes */
+        .form-group.row-prestador {
+            display: grid;
+            grid-template-columns: 165px 1fr;
+            gap: 15px;
+        }
+        
+        .form-group.row-localidade {
+            display: grid;
+            grid-template-columns: 90px 65px 1fr; 
+            gap: 10px;
+        }
+        
+        label { 
+            display: block; 
+            margin-bottom: 4px; 
+            font-size: 12px; 
+            font-weight: 600; 
+            color: #4A5568; 
+        }
+        
+        .required::after { 
+            content: " *"; 
+            color: var(--accent-color); 
+        }
+        
+        input, textarea, select { 
+            width: 100%; 
+            padding: 10px; 
+            border: 1px solid #CBD5E0; 
+            border-radius: 6px; 
+            box-sizing: border-box; 
+            font-size: 14px; 
+            background: #FAFAFA; 
+            transition: all 0.2s; 
+        }
+        
+        input:focus, textarea:focus, select:focus { 
+            border-color: var(--accent-blue); 
+            background: #fff; 
+            outline: none; 
+            box-shadow: 0 0 0 3px rgba(66, 153, 225, 0.15);
+        }
+
+        .was-validated input:invalid, 
+        .was-validated textarea:invalid, 
+        .was-validated select:invalid,
+        input.is-invalid {
+            border-color: var(--accent-color) !important;
+            background-color: #FFF5F5 !important;
+        }
+
+        .was-validated input:invalid:focus, 
+        .was-validated textarea:invalid:focus, 
+        .was-validated select:invalid:focus,
+        input.is-invalid:focus {
+            box-shadow: 0 0 0 3px rgba(220, 53, 69, 0.2) !important;
+        }
+        
+        textarea#descricaoServico {
+            resize: vertical;
+            font-family: inherit;
+            line-height: 1.5;
+        }
+        
+        .radio-group { 
+            display: flex; 
+            gap: 20px; 
+            margin-top: 6px; 
+        }
+        
+        .radio-option { 
+            font-size: 13px; 
+            cursor: pointer; 
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+        
+        .btn-container {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+            margin-top: 15px;
+        }
+        
+        button { 
+            width: 100%; 
+            color: white; 
+            border: none; 
+            padding: 14px; 
+            font-size: 14px; 
+            font-weight: 600; 
+            border-radius: 6px; 
+            cursor: pointer; 
+            transition: background 0.2s; 
+        }
+        
+        .btn-zap { background-color: #25D366; }
+        .btn-zap:hover { background-color: #128C7E; }
+        .btn-email { background-color: var(--secondary-color); }
+        .btn-email:hover { background-color: var(--primary-color); }
+        
+        .footer { 
+            margin-top: 30px; 
+            padding-top: 15px;
+            border-top: 1px solid #E2E8F0;
+            text-align: center; 
+            font-size: 12px; 
+            color: #718096; 
+            line-height: 1.6;
+        }
+        
+        .footer a {
+            color: var(--accent-blue);
+            text-decoration: none;
+            font-weight: 500;
+        }
+        
+        .footer a:hover {
+            text-decoration: underline;
+        }
+        
+        .footer-office {
+            font-weight: 600;
+            color: var(--primary-color);
+            margin-bottom: 4px;
+        }
+
+        @media (max-width: 400px) {
+            .form-group.row-prestador {
+                grid-template-columns: 1fr;
+                gap: 12px;
+            }
+            .form-group.row-localidade {
+                grid-template-columns: 1fr;
+                gap: 12px;
+            }
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <div class="header">
+        <h1>FF Contabilidade</h1>
+        <h2>Solicitação de Emissão de NFS-e</h2>
+    </div>
+    
+    <div class="instructions">Prezado(a) cliente, preencha os campos abaixo com os dados do tomador de serviço para a correta emissão do seu documento fiscal. <strong>Campos com * são obrigatórios.</strong></div>
+    
+    <div class="prazo-aviso">⏳ Prazo para faturamento: Até 24 horas úteis.</div>
+
+    <form id="nfseForm" novalidate>
+        <fieldset>
+            <legend>1. Prestador (informe seu CNPJ e Razão Social)</legend>
+            <div class="form-group row-prestador">
+                <div><label for="cnpjPrestador" class="required">CNPJ do Prestador</label><input type="text" id="cnpjPrestador" required oninput="mascaraMutuario(this, cpfCnpj)"></div>
+                <div><label for="nomePrestador" class="required">Razão Social</label><input type="text" id="nomePrestador" required></div>
+            </div>
+        </fieldset>
+
+        <fieldset>
+            <legend>2. Tomador (Seu Cliente)</legend>
+            <div class="form-group"><label for="nomeTomador" class="required">Razão Social / Nome</label><input type="text" id="nomeTomador" required></div>
+            <div class="form-group row-2">
+                <div><label for="documentoTomador" class="required">CNPJ / CPF</label><input type="text" id="documentoTomador" required oninput="mascaraMutuario(this, cpfCnpj)"></div>
+                <div><label for="inscricaoMunicipal">Inscrição Municipal</label><input type="text" id="inscricaoMunicipal"></div>
+            </div>
+            <div class="form-group"><label for="emailTomador">E-mail</label><input type="email" id="emailTomador"></div>
+            <div class="form-group"><label for="enderecoTomador" class="required">Endereço Completo</label><input type="text" id="enderecoTomador" required></div>
+            
+            <div class="form-group row-localidade">
+                <div>
+                    <label for="cepTomador" class="required">CEP</label>
+                    <input type="text" id="cepTomador" required oninput="mascaraMutuario(this, mCEP)">
+                </div>
+                <div>
+                    <label for="ufTomador" class="required">UF</label>
+                    <input type="text" id="ufTomador" list="list-uf" required placeholder="SP" oninput="lidarMudancaUF()" autocomplete="off">
+                    <datalist id="list-uf"></datalist>
+                </div>
+                <div>
+                    <label for="cidadeTomador" class="required">Cidade</label>
+                    <input type="text" id="cidadeTomador" list="list-cidade" required placeholder="Digite a cidade..." disabled autocomplete="off">
+                    <datalist id="list-cidade"></datalist>
+                </div>
+            </div>
+        </fieldset>
+
+        <fieldset>
+            <legend>3. VALOR TOTAL NFS-e</legend>
+            <div class="form-group row-2">
+                <div><label for="valorServico" class="required">Valor Total (R$)</label><input type="text" id="valorServico" required oninput="mascaraMutuario(this, mMoeda)"></div>
+                <div>&nbsp;</div>
+            </div>
+            <div class="form-group row-2">
+                <div><label>Haverá retenções?</label><div class="radio-group"><label class="radio-option"><input type="radio" name="retencoes" value="Não" checked> Não</label><label class="radio-option"><input type="radio" name="retencoes" value="Sim"> Sim</label></div></div>
+                <div><label>Optante pelo Simples?</label><div class="radio-group"><label class="radio-option"><input type="radio" name="simplesNacional" value="Não" checked> Não</label><label class="radio-option"><input type="radio" name="simplesNacional" value="Sim"> Sim</label></div></div>
+            </div>
+        </fieldset>
+
+        <fieldset>
+            <legend>4. DESCRIÇÃO DOS SERVIÇOS</legend>
+            <div class="form-group"><label for="descricaoServico" class="required">Discriminação detalhada das Atividades executadas</label><textarea id="descricaoServico" rows="8" placeholder="Descreva aqui com detalhes os serviços prestados para a emissão da nota..." required></textarea></div>
+        </fieldset>
+
+        <div class="btn-container">
+            <button type="button" class="btn-zap" onclick="enviarWhatsApp()">Enviar via WhatsApp</button>
+            <button type="button" class="btn-email" onclick="baixarPDF()">Baixar PDF e E-mail</button>
+        </div>
+    </form>
+    
+    <div class="footer">
+        <div class="footer-office">FF Contabilidade</div>
+        <div>Telefone: <strong>11-2856-0302</strong> | WhatsApp: <a href="https://wa.me/5511947293077" target="_blank">11-94729-3077</a></div>
+        <div>E-mail: <a href="mailto:grupofiscal@ffcontabilidade.com.br">grupofiscal@ffcontabilidade.com.br</a></div>
+        <div style="margin-top: 5px; font-size: 11px; color: #A0AEC0;">© 2026 FF Contabilidade - Todos os direitos reservados.</div>
+    </div>
+</div>
+
+<script>
+let listaEstadosGlobal = [];
+
+document.addEventListener("DOMContentLoaded", () => {
+    carregarEstados();
+});
+
+function carregarEstados() {
+    const datalistUf = document.getElementById("list-uf");
+    fetch("https://servicodados.ibge.gov.br/api/v1/localidades/estados?ordenar=sigla")
+        .then(response => response.json())
+        .then(estados => {
+            listaEstadosGlobal = estados.map(e => e.sigla);
+            estados.forEach(estado => {
+                let option = document.createElement("option");
+                option.value = estado.sigla;
+                datalistUf.appendChild(option);
+            });
+        })
+        .catch(err => console.error("Erro ao carregar estados: ", err));
+}
+
+function lidarMudancaUF() {
+    const ufInput = document.getElementById("ufTomador");
+    const valorUf = ufInput.value.toUpperCase().trim();
+    
+    ufInput.value = valorUf;
+
+    if (listaEstadosGlobal.includes(valorUf)) {
+        carregarCidades(valorUf);
+    } else {
+        const cidadeInput = document.getElementById("cidadeTomador");
+        const datalistCidade = document.getElementById("list-cidade");
+        cidadeInput.value = "";
+        cidadeInput.disabled = true;
+        datalistCidade.innerHTML = "";
+    }
+}
+
+function carregarCidades(uf) {
+    const cidadeInput = document.getElementById("cidadeTomador");
+    const datalistCidade = document.getElementById("list-cidade");
+    
+    cidadeInput.value = "";
+    cidadeInput.placeholder = "Carregando...";
+    cidadeInput.disabled = true;
+    datalistCidade.innerHTML = "";
+
+    fetch(`https://servicodados.ibge.gov.br/api/v1/localidades/estados/${uf}/municipios?ordenar=nome`)
+        .then(response => response.json())
+        .then(cidades => {
+            cidades.forEach(cidade => {
+                let option = document.createElement("option");
+                option.value = cidade.nome;
+                datalistCidade.appendChild(option);
+            });
+            cidadeInput.placeholder = "Selecione...";
+            cidadeInput.disabled = false;
+        })
+        .catch(err => {
+            console.error("Erro ao carregar cidades: ", err);
+            cidadeInput.placeholder = "Erro ao carregar";
+        });
+}
+
+function mascaraMutuario(o,f){ setTimeout(function(){o.value=f(o.value);},1); }
+
+function cpfCnpj(v){
+    v=v.replace(/\D/g,"");
+    if(v.length<=11){
+        v=v.replace(/(\d{3})(\d)/,"$1.$2");
+        v=v.replace(/(\d{3})(\d)/,"$1.$2");
+        v=v.replace(/(\d{3})(\d{1,2})$/,"$1-$2");
+    } else {
+        v=v.substring(0,14);
+        v=v.replace(/^(\d{2})(\d)/,"$1.$2");
+        v=v.replace(/^(\d{2})\.(\d{3})(\d)/,"$1.$2.$3");
+        v=v.replace(/\.(\d{3})(\d)/,".$1/$2");
+        v=v.replace(/(\d{4})(\d)/,"$1-$2");
+    }
+    return v.substring(0, 18);
+}
+
+function mMoeda(v){
+    v=v.replace(/\D/g,"");
+    if(v===""){ return ""; }
+    v=(parseInt(v)/100).toFixed(2).toString();
+    v=v.replace(".",",");
+    v=v.replace(/(\d)(?=(\d{3})+(?!\d))/g,"$1.");
+    return "R$ "+v;
+}
+
+function mCEP(v){
+    v=v.replace(/\D/g,"");
+    v=v.replace(/^(\d{5})(\d)/,"$1-$2");
+    return v.substring(0,9);
+}
+
+function validarCpfCnpj(val){
+    val=val.replace(/\D/g,"");
+    if(val.length===11){
+        let s=0,r;
+        if(/^(\d)\1{10}$/.test(val)) return false;
+        for(let i=1;i<=9;i++) s+=parseInt(val[i-1])*(11-i);
+        r=(s*10)%11; if(r==10||r==11) r=0; if(r!=parseInt(val[9])) return false;
+        s=0; for(let i=1;i<=10;i++) s+=parseInt(val[i-1])*(12-i);
+        r=(s*10)%11; if(r==10||r==11) r=0; return r==parseInt(val[10]);
+    }
+    else if(val.length===14){
+        let t=12,n=val.substring(0,t),d=val.substring(t),s=0,p=5;
+        for(let i=0;i<12;i++){s+=n[i]*p;p=(p==2?9:p-1);}
+        let r=s%11<2?0:11-s%11; if(r!=d[0]) return false;
+        t=13; n=val.substring(0,t); s=0; p=6;
+        for(let i=0;i<13;i++){s+=n[i]*p;p=(p==2?9:p-1);}
+        r=s%11<2?0:11-s%11; return r==d[1];
+    }
+    return false;
+}
+
+function validarCampos(){
+    const form = document.getElementById('nfseForm');
+    
+    document.getElementById('cnpjPrestador').classList.remove('is-invalid');
+    document.getElementById('documentoTomador').classList.remove('is-invalid');
+    
+    form.classList.add('was-validated');
+
+    const cnpjPresEl = document.getElementById('cnpjPrestador');
+    const cnpjPres = cnpjPresEl.value.replace(/\D/g,"");
+    if(cnpjPres!=="" && !validarCpfCnpj(cnpjPres)){
+        cnpjPresEl.classList.add('is-invalid');
+        alert("CNPJ do Prestador inválido!");
+        cnpjPresEl.focus();
+        return false;
+    }
+    
+    const docEl = document.getElementById('documentoTomador');
+    const doc = docEl.value.replace(/\D/g,"");
+    if(doc!=="" && !validarCpfCnpj(doc)){
+        docEl.classList.add('is-invalid');
+        alert("CPF/CNPJ do Tomador inválido!"); 
+        docEl.focus(); 
+        return false;
+    }
+    
+    if(!form.checkValidity()){
+        form.reportValidity(); 
+        return false;
+    }
+    return true;
+}
+
+function enviarWhatsApp(){
+    if(!validarCampos()) return;
+    
+    const cidadeText = document.getElementById('cidadeTomador').value;
+    const ufText = document.getElementById('ufTomador').value;
+    
+    let msg = `*SOLICITAÇÃO DE NFS-e*\n\n*EMPRESA:* ${document.getElementById('nomePrestador').value} (${document.getElementById('cnpjPrestador').value})\n\n*--- DADOS DO TOMADOR ---*\n*NOME/RAZÃO:* ${document.getElementById('nomeTomador').value}\n*CPF/CNPJ:* ${document.getElementById('documentoTomador').value}\n*INSC. MUNICIPAL:* ${document.getElementById('inscricaoMunicipal').value || 'Não informado'}\n*E-MAIL:* ${document.getElementById('emailTomador').value || 'Não informado'}\n*ENDEREÇO:* ${document.getElementById('enderecoTomador').value}\n*CIDADE/UF:* ${cidadeText} / ${ufText}\n*CEP:* ${document.getElementById('cepTomador').value}`;
+    
+    window.open("https://api.whatsapp.com/send?phone=5511947293077&text="+encodeURIComponent(msg));
+}
+
+function baixarPDF(){
+    if(!validarCampos()) return;
+    const { jsPDF } = window.jspdf;
+    const pdf = new jsPDF();
+    const prestadorNome = document.getElementById('nomePrestador').value;
+    const prestadorCnpj = document.getElementById('cnpjPrestador').value;
+    
+    const cidadeText = document.getElementById('cidadeTomador').value;
+    const ufText = document.getElementById('ufTomador').value;
+    
+    pdf.setFont("helvetica", "bold");
+    pdf.setFontSize(16);
+    pdf.text("SOLICITAÇÃO DE EMISSÃO DE NFS-e", 105, 15, { align: "center" });
+    
+    let y = 30;
+    const drawField = (label, value, x, width) => {
+        pdf.setDrawColor(150);
+        pdf.rect(x, y, width, 12);
+        pdf.setFontSize(8);
+        pdf.setFont("helvetica", "bold");
+        pdf.text(label, x + 2, y + 4);
+        pdf.setFontSize(10);
+        pdf.setFont("helvetica", "normal");
+        let txt = pdf.splitTextToSize(value || "---", width - 4);
+        pdf.text(txt, x + 2, y + 9);
+    };
+
+    drawField("CNPJ DO PRESTADOR", prestadorCnpj, 10, 93);
+    drawField("RAZÃO SOCIAL PRESTADOR", prestadorNome, 107, 93); y += 18;
+    
+    pdf.setFontSize(11);
+    pdf.setFont("helvetica", "bold");
+    pdf.text("DADOS DO TOMADOR (CLIENTE)", 10, y); y += 5;
+
+    drawField("RAZÃO SOCIAL / NOME", document.getElementById('nomeTomador').value, 10, 190); y += 15;
+    drawField("CPF / CNPJ", document.getElementById('documentoTomador').value, 10, 93);
+    drawField("INSCRIÇÃO MUNICIPAL", document.getElementById('inscricaoMunicipal').value, 107, 93); y += 15;
+    drawField("E-MAIL", document.getElementById('emailTomador').value, 10, 190); y += 15;
+    drawField("ENDEREÇO COMPLETO", document.getElementById('enderecoTomador').value, 10, 190); y += 15;
+    
+    drawField("CIDADE / UF", `${cidadeText} / ${ufText}`, 10, 140);
+    drawField("CEP", document.getElementById('cepTomador').value, 155, 45); y += 15;
+    
+    drawField("VALOR TOTAL DO SERVIÇO", document.getElementById('valorServico').value, 10, 190); y += 15;
+    drawField("RETENÇÕES", document.querySelector('input[name="retencoes"]:checked').value, 10, 93);
+    drawField("OPTANTE SIMPLES", document.querySelector('input[name="simplesNacional"]:checked').value, 107, 93); y += 15;
+    
+    pdf.setDrawColor(150);
+    pdf.rect(10, y, 190, 30);
+    pdf.setFontSize(8); pdf.setFont("helvetica", "bold"); pdf.text("DISCRIMINAÇÃO DETALHADA DAS ATIVIDADES EXECUTADAS", 12, y + 4);
+    pdf.setFontSize(10); pdf.setFont("helvetica", "normal");
+    let desc = pdf.splitTextToSize(document.getElementById('descricaoServico').value, 186);
+    pdf.text(desc, 12, y + 9);
+
+    pdf.save("Solicitacao_NFSe.pdf");
+    
+    setTimeout(() => {
+        alert("✔️ O PDF foi baixado no seu computador ou celular.\n\nPor regras de segurança do navegador, você precisará anexar o PDF manualmente na tela de e-mail que vai se abrir agora.");
+        window.location.href = `mailto:grupofiscal@ffcontabilidade.com.br?subject=Solicitação NFS-e - ${encodeURIComponent(prestadorNome)}&body=Segue em anexo o relatório para emissão da nota fiscal.`;
+    }, 500);
+}
+</script>
+</body>
+</html>
